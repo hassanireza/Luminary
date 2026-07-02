@@ -101,6 +101,12 @@ DATABASES = {
     )
 }
 
+import sys
+print(f"[BOOT DEBUG] DB ENGINE: {DATABASES['default'].get('ENGINE')}", file=sys.stderr)
+print(f"[BOOT DEBUG] DB NAME: {DATABASES['default'].get('NAME')}", file=sys.stderr)
+print(f"[BOOT DEBUG] DB HOST: {DATABASES['default'].get('HOST')}", file=sys.stderr)
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
