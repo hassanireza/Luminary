@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/assets/banner.svg" alt="Luminary banner" width="100%" />
+<img src="assets/banner.webp" alt="Luminary banner" width="100%" />
 
 <br />
 
