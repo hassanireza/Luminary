@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% load thumbnail %}
+
+{% block title %}Luminary &mdash; Home{% endblock %}
+
+{% block extra_head %}
+<style>
+    .home-header {
+        padding: 56px 0 40px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+    }
+
+    .home-header-left h1 {
+        font-family: var(--font-display);
+        font-size: clamp(36px, 5vw, 54px);
+        font-weight: 300;
+        line-height: 1.1;
+        letter-spacing: -0.01em;
+        color: var(--text-primary);
+    }
+
+    .home-header-left h1 em {
+        font-style: italic;
+        background: var(--gradient-gold);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .home-header-left p {
+        margin-top: 10px;
+        color: var(--text-secondary);
+        font-size: 15px;
+        font-weight: 300;
+    }
+
+    .post-count-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        font-weight: 400;
+        white-space: nowrap;
+    }
+
+    .post-count-badge span {
+        color: var(--gold-light);
+        font-weight: 500;
+    }
+
+    .divider {
+        height: 1px;
+        background: var(--border);
+        margin-bottom: 40px;
+    }
+
+    .posts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2px;
+        margin-bottom: 60px;
+    }
+
+    .post-card {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+        background: var(--bg-card);
+        cursor: pointer;
+        display: block;
+        text-decoration: none;
+    }
+
+    .post-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            to top,
+            rgba(10,9,8,0.85) 0%,
+            rgba(10,9,8,0.2) 40%,
+            transparent 70%
+        );
+        opacity: 0;
+        transition: opacity 0.28s ease;
+        z-index: 1;
+    }
+
+    .post-card:hover::after {
+        opacity: 1;
+    }
+
+    .post-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        filter: brightness(0.9) saturate(0.85);
+    }
+
+    .post-card:hover img {
+        transform: scale(1.06);
+        filter: brightness(1) saturate(1);
+    }
+
+    .post-card-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 20px 18px 18px;
+        z-index: 2;
+        opacity: 0;
+        transform: translateY(6px);
+        transition: opacity 0.28s ease, transform 0.28s ease;
+    }
+
+    .post-card:hover .post-card-overlay {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .post-card-text {
+        font-family: var(--font-display);
+        font-size: 17px;
+        font-weight: 400;
+        color: var(--text-primary);
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+    }
+
+    .post-card-view {
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--gold-light);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .post-card-index {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(10,9,8,0.7);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        border: 1px solid rgba(255,255,255,0.08);
+        z-index: 2;
+        opacity: 0;
+        transform: scale(0.8);
+        transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+
+    .post-card:hover .post-card-index {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .posts-grid .post-card:nth-child(1) { animation: fadeUp 0.5s 0.05s both; }
+    .posts-grid .post-card:nth-child(2) { animation: fadeUp 0.5s 0.1s both; }
+    .posts-grid .post-card:nth-child(3) { animation: fadeUp 0.5s 0.15s both; }
+    .posts-grid .post-card:nth-child(4) { animation: fadeUp 0.5s 0.2s both; }
+    .posts-grid .post-card:nth-child(5) { animation: fadeUp 0.5s 0.25s both; }
+    .posts-grid .post-card:nth-child(6) { animation: fadeUp 0.5s 0.3s both; }
+    .posts-grid .post-card:nth-child(n+7) { animation: fadeUp 0.5s 0.35s both; }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .empty-state {
+        padding: 100px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        text-align: center;
+    }
+
+    .empty-state-icon {
+        width: 72px;
+        height: 72px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+    }
+
+    .empty-state h3 {
+        font-family: var(--font-display);
+        font-size: 26px;
+        font-weight: 400;
+        color: var(--text-primary);
+    }
+
+    .empty-state p {
+        font-size: 15px;
+        color: var(--text-secondary);
+        max-width: 320px;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 680px) {
+        .home-header { padding: 36px 0 28px; flex-direction: column; align-items: flex-start; }
+        .posts-grid { grid-template-columns: repeat(2, 1fr); gap: 2px; }
+    }
+
+    @media (max-width: 400px) {
+        .posts-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="home-header">
+        <div class="home-header-left">
+            <h1>Your <em>moments,</em><br>beautifully kept.</h1>
+            <p>A curated space for the images that matter.</p>
+        </div>
+        {% if posts %}
+        <div class="post-count-badge">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+                <rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+                <rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+                <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+            </svg>
+            <span>{{ posts|length }}</span> post{% if posts|length != 1 %}s{% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="divider"></div>
+
+    {% if posts %}
+    <div class="posts-grid">
+        {% for post in posts %}
+        <a href="{% url 'feed:detail' post.id %}" class="post-card">
+            <div class="post-card-index">{{ forloop.counter }}</div>
+            {% thumbnail post.image "600x600" crop="center" as im %}
+            <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" alt="{{ post.text }}" loading="{% if forloop.counter <= 6 %}eager{% else %}lazy{% endif %}">
+            {% endthumbnail %}
+            <div class="post-card-overlay">
+                <div class="post-card-text">{{ post.text }}</div>
+                <div class="post-card-view">
+                    View
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="6" width="24" height="20" rx="3" stroke="currentColor" stroke-width="1.5"/>
+                <circle cx="11" cy="13" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M4 22l6-5 4 4 4-3 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <h3>No posts yet</h3>
+        <p>Start sharing your world. Your first post is just a moment away.</p>
+        <a href="{% url 'feed:post' %}" class="btn btn-primary">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.5 1v13M1 7.5h13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            Create your first post
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

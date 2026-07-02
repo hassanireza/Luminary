@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+
+{% block title %}New Post &mdash; Luminary{% endblock %}
+
+{% block extra_head %}
+<style>
+    .upload-wrapper {
+        padding: 56px 0 100px;
+    }
+
+    .upload-header {
+        margin-bottom: 40px;
+    }
+
+    .upload-header h1 {
+        font-family: var(--font-display);
+        font-size: clamp(28px, 4vw, 40px);
+        font-weight: 300;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
+        line-height: 1.15;
+    }
+
+    .upload-header h1 em {
+        font-style: italic;
+        background: var(--gradient-gold);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .upload-header p {
+        margin-top: 10px;
+        color: var(--text-secondary);
+        font-size: 15px;
+        font-weight: 300;
+    }
+
+    .upload-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+    }
+
+    .upload-card-body {
+        padding: 36px 40px 40px;
+    }
+
+    .form-field {
+        margin-bottom: 28px;
+    }
+
+    .form-field:last-of-type {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+        width: 100%;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 13px 16px;
+        font-family: var(--font-body);
+        font-size: 15px;
+        font-weight: 300;
+        color: var(--text-primary);
+        outline: none;
+        transition: border-color var(--transition), box-shadow var(--transition);
+        appearance: none;
+        -webkit-appearance: none;
+    }
+
+    .form-input::placeholder,
+    .form-textarea::placeholder {
+        color: var(--text-muted);
+    }
+
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-select:focus {
+        border-color: rgba(232,168,48,0.4);
+        box-shadow: 0 0 0 3px rgba(232,168,48,0.08);
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 100px;
+        line-height: 1.6;
+    }
+
+    .form-error {
+        margin-top: 6px;
+        font-size: 13px;
+        color: var(--error-text);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .form-hint {
+        margin-top: 6px;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .upload-zone {
+        border: 1.5px dashed var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--bg-elevated);
+        padding: 48px 32px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color var(--transition), background var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+        border-color: rgba(232,168,48,0.4);
+        background: rgba(232,168,48,0.03);
+    }
+
+    .upload-zone input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+
+    .upload-zone-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--radius-md);
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        color: var(--text-muted);
+        transition: border-color var(--transition), color var(--transition);
+    }
+
+    .upload-zone:hover .upload-zone-icon,
+    .upload-zone.drag-over .upload-zone-icon {
+        border-color: rgba(232,168,48,0.3);
+        color: var(--gold-light);
+    }
+
+    .upload-zone-title {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+    }
+
+    .upload-zone-sub {
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.6;
+    }
+
+    .upload-zone-sub strong {
+        color: var(--gold-light);
+        font-weight: 400;
+    }
+
+    .upload-preview {
+        display: none;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        max-height: 320px;
+        position: relative;
+    }
+
+    .upload-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .upload-preview-clear {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(10,9,8,0.8);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.1);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        transition: var(--transition);
+    }
+
+    .upload-preview-clear:hover {
+        color: var(--text-primary);
+        border-color: rgba(255,255,255,0.2);
+    }
+
+    .upload-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 32px 0;
+    }
+
+    .upload-footer {
+        padding: 24px 40px;
+        background: var(--bg-elevated);
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .upload-footer-hint {
+        font-size: 13px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .upload-footer-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .btn-submit {
+        padding: 12px 32px;
+        font-size: 15px;
+    }
+
+    .form-django-field p {
+        margin: 0;
+    }
+
+    .form-django-field label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+    }
+
+    .form-django-field input[type="text"],
+    .form-django-field input[type="email"],
+    .form-django-field textarea {
+        width: 100%;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 13px 16px;
+        font-family: var(--font-body);
+        font-size: 15px;
+        font-weight: 300;
+        color: var(--text-primary);
+        outline: none;
+        transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .form-django-field input[type="text"]:focus,
+    .form-django-field input[type="email"]:focus,
+    .form-django-field textarea:focus {
+        border-color: rgba(232,168,48,0.4);
+        box-shadow: 0 0 0 3px rgba(232,168,48,0.08);
+    }
+
+    .form-django-field input[type="file"] {
+        display: none;
+    }
+
+    .form-django-field ul {
+        list-style: none;
+        margin-top: 6px;
+    }
+
+    .form-django-field ul li {
+        font-size: 13px;
+        color: var(--error-text);
+        margin: 2px 0;
+    }
+
+    .step-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        margin-bottom: 32px;
+    }
+
+    .step {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .step-num {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+
+    .step.active .step-num {
+        background: var(--gradient-gold);
+        border-color: transparent;
+        color: #1a1200;
+    }
+
+    .step.active {
+        color: var(--text-primary);
+    }
+
+    .step-line {
+        height: 1px;
+        width: 32px;
+        background: var(--border);
+        margin: 0 8px;
+    }
+
+    @media (max-width: 680px) {
+        .upload-card-body { padding: 24px 20px; }
+        .upload-footer { padding: 20px; flex-direction: column; align-items: stretch; }
+        .upload-footer-actions { justify-content: flex-end; }
+        .upload-zone { padding: 36px 20px; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-narrow upload-wrapper">
+    <div class="upload-header">
+        <a href="{% url 'feed:index' %}" class="btn-back" style="margin-bottom: 20px; display: inline-flex;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Back to feed
+        </a>
+        <h1>Share a new<br><em>moment</em></h1>
+        <p>Upload an image and give it a caption worth remembering.</p>
+    </div>
+
+    <div class="step-indicator">
+        <div class="step active">
+            <div class="step-num">1</div>
+            Choose image
+        </div>
+        <div class="step-line"></div>
+        <div class="step active">
+            <div class="step-num">2</div>
+            Add caption
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+            <div class="step-num">3</div>
+            Publish
+        </div>
+    </div>
+
+    <form method="POST" action="" enctype="multipart/form-data" id="upload-form">
+        {% csrf_token %}
+
+        <div class="upload-card">
+            <div class="upload-card-body">
+                <div class="form-field">
+                    <span class="form-label">Image</span>
+                    <div class="upload-zone" id="upload-zone">
+                        {{ form.image }}
+                        <div class="upload-zone-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="3" y="5" width="18" height="15" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                                <circle cx="8.5" cy="10.5" r="1.5" stroke="currentColor" stroke-width="1.3"/>
+                                <path d="M3 17l5-4 4 4 3-2.5 5 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M15 3v4M13 5h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="upload-zone-title">Drop your image here</div>
+                        <div class="upload-zone-sub">
+                            or <strong>click to browse</strong><br>
+                            JPG, PNG, WEBP &mdash; up to 20MB
+                        </div>
+                    </div>
+                    <div class="upload-preview" id="upload-preview">
+                        <img id="preview-img" src="" alt="Preview">
+                        <button type="button" class="upload-preview-clear" id="clear-preview" title="Remove image">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="upload-divider"></div>
+
+                <div class="form-django-field form-field">
+                    {% for field in form %}
+                        {% if field.html_name != 'image' %}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <ul>
+                            {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+            </div>
+
+            <div class="upload-footer">
+                <div class="upload-footer-hint">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/>
+                        <path d="M7 6.5v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                        <circle cx="7" cy="4.5" r="0.6" fill="currentColor"/>
+                    </svg>
+                    Your image will be shared publicly
+                </div>
+                <div class="upload-footer-actions">
+                    <a href="{% url 'feed:index' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary btn-submit" id="submit-btn">
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 7.5l4 4 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Publish Post
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+(function() {
+    var zone = document.getElementById('upload-zone');
+    var preview = document.getElementById('upload-preview');
+    var previewImg = document.getElementById('preview-img');
+    var clearBtn = document.getElementById('clear-preview');
+    var fileInput = document.querySelector('#upload-zone input[type="file"]');
+    var submitBtn = document.getElementById('submit-btn');
+
+    if (!zone || !fileInput) return;
+
+    function showPreview(file) {
+        if (!file || !file.type.startsWith('image/')) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            zone.style.display = 'none';
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) showPreview(this.files[0]);
+    });
+
+    zone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        zone.classList.add('drag-over');
+    });
+
+    zone.addEventListener('dragleave', function() {
+        zone.classList.remove('drag-over');
+    });
+
+    zone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        var files = e.dataTransfer.files;
+        if (files && files[0]) {
+            var dt = new DataTransfer();
+            dt.items.add(files[0]);
+            fileInput.files = dt.files;
+            showPreview(files[0]);
+        }
+    });
+
+    clearBtn.addEventListener('click', function() {
+        fileInput.value = '';
+        previewImg.src = '';
+        preview.style.display = 'none';
+        zone.style.display = 'block';
+    });
+
+    document.getElementById('upload-form').addEventListener('submit', function() {
+        submitBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation:spin 0.8s linear infinite"><path d="M8 2a6 6 0 1 0 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> Publishing…';
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.7';
+    });
+})();
+</script>
+
+<style>
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
